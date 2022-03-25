@@ -1,3 +1,5 @@
+import re
+
 import PySimpleGUI as sg
 from knn import fileToTwoDList, plotList, checkVector, testEval, plotK
 
@@ -17,8 +19,11 @@ def createVectorMenu(dataList):
 
 def createPathMenu():
     pathMenu = [
+        [sg.Text('Please enter train dataset separator: '), sg.InputText(key='s1', size=2)],
         [sg.Text('Please enter train dataset path: ')],
         [sg.InputText(key='p1')],
+        [sg.Text('\n')],
+        [sg.Text('Please enter test dataset separator: '), sg.InputText(key='s2', size=2)],
         [sg.Text('Please enter test dataset path: ')],
         [sg.InputText(key='p2')],
         [sg.Button('Exit', size=8), sg.Push(), sg.Button('Enter', key='pathEnter', size=8)],
@@ -58,12 +63,14 @@ def menu():
                 testPath = values['p2']
                 trainPath = trainPath.replace(" ", "").replace("\n", "").replace("\t", "")
                 testPath = testPath.replace(" ", "").replace("\n", "").replace("\t", "")
+                trainSep = values['s1']
+                testSep = values['s2']
                 try:
                     with open(trainPath) as file:
                         train_data = file.read()
                     with open(testPath) as file:
                         test_data = file.read()
-                    train_list, test_list = fileToTwoDList(train_data), fileToTwoDList(test_data)
+                    train_list, test_list = fileToTwoDList(train_data, trainSep), fileToTwoDList(test_data, testSep)
                     window.close()
                     window = sg.Window('Menu', createUserMenu())
                     isPathMenu = False
@@ -108,11 +115,15 @@ def menu():
             inputVector = [0.0] * (len(train_list[0]) - 1)
             for i in range(len(train_list[0]) - 1):
                 if len(values[f'in{i}']) > 0:
-                    if set(values[f'in{i}']).issubset(set('0123456789.')):
-                        if '.' in values[f'in{i}']:
+                    if set(values[f'in{i}']).issubset(set('0123456789.')) and values[f'in{i}'].count(".") <= 1:
+                        if '.' in values[f'in{i}'][1:] and values[f'in{i}'][-1].isdigit():
                             inputVector[i] = float(values[f'in{i}'])
+                    elif re.compile('[@_!#$%^&*()<>?/|}{~:a-zA-Z]').search(values[f'in{i}']) is not None:
+                        window.Element(f'in{i}').update('')
+                    elif values[f'in{i}'].count(".") > 1:
+                        window.Element(f'in{i}').update('')
                     else:
-                        values[f'in{i}'] = values[f'in{i}'][:-1]
+                        window.Element(f'in{i}').update(values[f'in{i}'][:-1])
                 else:
                     isFilled = False
 
@@ -131,7 +142,6 @@ def menu():
                 for i in range(len(train_list[0]) - 1):
                     window[f'in{i}'].update('')
                 window['enterVMenu'].update(disabled=True)
-
 
 
 menu()
