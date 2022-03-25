@@ -1,13 +1,14 @@
 import random
-
 import matplotlib.pyplot as plt
 
 
-def fileToTwoDList(fileContent):
-    fileContent = fileContent.replace(',', '.')
+def fileToTwoDList(fileContent, separator):
+    fileContent = fileContent.rstrip()
+    if separator != ',':
+        fileContent = fileContent.replace(',', '.')
     fileContent = fileContent.split('\n')
     for i in range(len(fileContent)):
-        fileContent[i] = fileContent[i].split(';')
+        fileContent[i] = fileContent[i].split(separator)
     for i in range(len(fileContent)):
         for j in range(len(fileContent[i])):
             if '.' in fileContent[i][j]:
@@ -109,24 +110,10 @@ def testEval(testList, trainList, k):
         neighbors = distances[0:k]
         neighbors = [neighbor[1] for neighbor in neighbors]
         label = max(set(neighbors), key=neighbors.count)
-        # print(f"{tmpIndex}: predicted label: {label}, expected: {testList[tmpIndex][atribIndex]}")
+        print(f"{tmpIndex+1}: predicted label: {label}, expected: {testList[tmpIndex][atribIndex]}")
         if label == testList[tmpIndex][atribIndex]:
             correct += 1
         distances = []
     accuracy = correct / len(testList)
     print(f'Accuracy: {round(accuracy, 5) * 100}%')
     return accuracy
-
-
-def main():
-    with open("Data/iris_train.csv") as file:
-        train_data = file.read()
-    with open("Data/iris_test.csv") as file:
-        test_data = file.read()
-    train_list, test_list = fileToTwoDList(train_data), fileToTwoDList(test_data)
-    plotK(test_list, train_list)
-    # testEval(test_list, train_list, 4)
-    # checkVector([1.9, 1.5, 1.9, 1.0], train_list, 4)
-    # plotList(train_list)
-
-# main()
